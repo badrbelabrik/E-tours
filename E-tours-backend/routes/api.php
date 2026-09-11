@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\GameController;
+use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\RankingController;
 use App\Http\Controllers\Api\RegistrationController;
 use App\Http\Controllers\Api\ResultController;
@@ -52,4 +53,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/results', [ResultController::class, 'store']);
     Route::put('/results/{result}', [ResultController::class, 'update']);
     Route::delete('/results/{result}', [ResultController::class, 'destroy']);
+    //NOTIFICATIONS
+    Route::get('/notifications', [NotificationController::class, 'index']);
+    Route::get('/notifications/{notification}', [NotificationController::class, 'show']);
+    Route::put('/notifications/{notification}/read', [NotificationController::class, 'markAsRead']);
+    Route::delete('/notifications/{notification}', [NotificationController::class, 'destroy']);
 });

@@ -38,6 +38,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/tournaments/{tournament}/register', [RegistrationController::class, 'store']);
     Route::put('/registrations/{registration}', [RegistrationController::class, 'update']);
     Route::delete('/tournaments/{tournament}/register', [RegistrationController::class, 'destroy']);
+    //MATCHES-GENERATION
+    Route::post('/tournaments/{tournament}/matches/generate', [TournamentMatchController::class, 'generate']);
     //MATCHES
     Route::get('/matches', [TournamentMatchController::class, 'index']);
     Route::get('/matches/{match}', [TournamentMatchController::class, 'show']);

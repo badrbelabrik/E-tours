@@ -9,13 +9,11 @@ use Illuminate\Support\Facades\DB;
 class ResultService
 {
     public function __construct(
-        protected RankingService $rankingService
+        protected RankingService $rankingService,
+        protected MatchService $matchService
     ) {
     }
 
-    /**
-     * Record a match result and update the ranking.
-     */
     public function createResult(
         TournamentMatch $match,
         int $scorePlayer1,
@@ -35,6 +33,10 @@ class ResultService
                 'winner_id' => $winnerId,
             ]);
 
+            $match->update([
+                'status' => 'finished',
+            ]);
+
             $winner = $match->first_player_id === $winnerId
                 ? $match->firstPlayer
                 : $match->secondPlayer;
@@ -51,7 +53,38 @@ class ResultService
                 $game
             );
 
+            $this->generateNextRoundIfReady($match);
+
             return $result;
         });
+    }
+
+    private function generateNextRoundIfReady(
+        TournamentMatch $match
+    ): void {
+        $tournament = $match->tournament;
+
+        $currentRound = $match->round;
+
+        $currentMatches = $tournament->matches()
+            ->where('round', $currentRound)
+            ->with('result')
+            ->get();
+
+        if ($currentMatches->isEmpty()) {
+            return;
+        }
+
+        $allFinished = $currentMatches->every(
+            fn ($currentMatch) =>
+                $currentMatch->status === 'finished' &&
+                $currentMatch->result !== null
+        );
+
+        if (!$allFinished) {
+            return;
+        }
+
+        $this->matchService->generateNextRound($tournament);
     }
 }

@@ -3,11 +3,17 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Tournament;
 use App\Models\TournamentMatch;
 use Illuminate\Http\Request;
+use App\Services\MatchService;
 
 class TournamentMatchController extends Controller
 {
+    public function __construct(
+        protected MatchService $matchService
+    ) {
+    }
     /**
      * Display a listing of matches.
      */
@@ -100,5 +106,22 @@ class TournamentMatchController extends Controller
         return response()->json([
             'message' => 'Match deleted successfully.'
         ]);
+    }
+
+    public function generate(Tournament $tournament)
+    {
+        try {
+            $matches = $this->matchService->generateMatches($tournament);
+
+            return response()->json([
+                'message' => 'Matches generated successfully.',
+                'matches' => $matches,
+            ], 201);
+
+        } catch (\InvalidArgumentException $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
+            ], 422);
+        }
     }
 }

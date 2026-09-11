@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\GameController;
+use App\Http\Controllers\Api\RankingController;
 use App\Http\Controllers\Api\RegistrationController;
 use App\Http\Controllers\Api\ResultController;
 use App\Http\Controllers\Api\TournamentController;
@@ -15,7 +16,8 @@ Route::get('/games', [GameController::class, 'index']);
 Route::get('/games/{game}', [GameController::class, 'show']);
 Route::get('/tournaments', [TournamentController::class, 'index']);
 Route::get('/tournaments/{tournament}', [TournamentController::class, 'show']);
-
+Route::get('/games/{game}/rankings', [RankingController::class, 'index']);
+Route::get('/games/{game}/rankings/{user}', [RankingController::class, 'show']);
 
 Route::middleware(['auth:sanctum', 'admin'])->group(function () {
     Route::post('/games', [GameController::class, 'store']);

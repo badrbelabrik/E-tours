@@ -1,0 +1,104 @@
+<?php
+
+namespace App\Http\Controllers\Api;
+
+use App\Http\Controllers\Controller;
+use App\Models\TournamentMatch;
+use Illuminate\Http\Request;
+
+class TournamentMatchController extends Controller
+{
+    /**
+     * Display a listing of matches.
+     */
+    public function index()
+    {
+        $matches = TournamentMatch::with([
+            'tournament',
+            'firstPlayer',
+            'secondPlayer'
+        ])->latest()->get();
+
+        return response()->json([
+            'matches' => $matches
+        ]);
+    }
+
+    /**
+     * Store a newly created match.
+     */
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'tournament_id' => 'required|exists:tournaments,id',
+            'round' => 'required|string|max:255',
+            'first_player_id' => 'nullable|exists:users,id|different:second_player_id',
+            'second_player_id' => 'nullable|exists:users,id',
+            'scheduled_at' => 'nullable|date',
+            'status' => 'nullable|in:scheduled,in_progress,finished,cancelled',
+        ]);
+
+        $match = TournamentMatch::create([
+            'tournament_id' => $validated['tournament_id'],
+            'round' => $validated['round'],
+            'first_player_id' => $validated['first_player_id'] ?? null,
+            'second_player_id' => $validated['second_player_id'] ?? null,
+            'scheduled_at' => $validated['scheduled_at'] ?? null,
+            'status' => $validated['status'] ?? 'scheduled',
+        ]);
+
+        return response()->json([
+            'message' => 'Match created successfully.',
+            'match' => $match
+        ], 201);
+    }
+
+    /**
+     * Display the specified match.
+     */
+    public function show(TournamentMatch $match)
+    {
+        $match->load([
+            'tournament',
+            'firstPlayer',
+            'secondPlayer'
+        ]);
+
+        return response()->json([
+            'match' => $match
+        ]);
+    }
+
+    /**
+     * Update the specified match.
+     */
+    public function update(Request $request, TournamentMatch $match)
+    {
+        $validated = $request->validate([
+            'round' => 'required|string|max:255',
+            'first_player_id' => 'nullable|exists:users,id|different:second_player_id',
+            'second_player_id' => 'nullable|exists:users,id',
+            'scheduled_at' => 'nullable|date',
+            'status' => 'nullable|in:scheduled,in_progress,finished,cancelled',
+        ]);
+
+        $match->update($validated);
+
+        return response()->json([
+            'message' => 'Match updated successfully.',
+            'match' => $match
+        ]);
+    }
+
+    /**
+     * Remove the specified match.
+     */
+    public function destroy(TournamentMatch $match)
+    {
+        $match->delete();
+
+        return response()->json([
+            'message' => 'Match deleted successfully.'
+        ]);
+    }
+}

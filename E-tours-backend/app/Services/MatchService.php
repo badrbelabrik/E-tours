@@ -10,6 +10,11 @@ use InvalidArgumentException;
 
 class MatchService
 {
+    public function __construct(
+        protected NotificationService $notificationService
+    ) {
+    }
+
     /**
      * Generate the first round of matches for a tournament.
      */
@@ -49,7 +54,7 @@ class MatchService
             $matches = [];
 
             for ($i = 0; $i < $playerCount; $i += 2) {
-                $matches[] = TournamentMatch::create([
+                $match = TournamentMatch::create([
                     'tournament_id' => $tournament->id,
                     'round' => $round,
                     'first_player_id' => $players[$i]->id,
@@ -57,6 +62,10 @@ class MatchService
                     'scheduled_at' => null,
                     'status' => 'scheduled',
                 ]);
+
+                $this->notifyMatchPlayers($match);
+
+                $matches[] = $match;
             }
 
             $tournament->update([
@@ -138,7 +147,7 @@ class MatchService
             $matches = [];
 
             for ($i = 0; $i < $winners->count(); $i += 2) {
-                $matches[] = TournamentMatch::create([
+                $match = TournamentMatch::create([
                     'tournament_id' => $tournament->id,
                     'round' => $nextRound,
                     'first_player_id' => $winners[$i]->id,
@@ -146,6 +155,10 @@ class MatchService
                     'scheduled_at' => null,
                     'status' => 'scheduled',
                 ]);
+
+                $this->notifyMatchPlayers($match);
+
+                $matches[] = $match;
             }
 
             return $matches;
@@ -235,5 +248,25 @@ class MatchService
             'final' => null,
             default => null,
         };
+    }
+
+    private function notifyMatchPlayers(TournamentMatch $match): void
+    {
+        $players = [
+            $match->firstPlayer,
+            $match->secondPlayer,
+        ];
+
+        foreach ($players as $player) {
+            if (!$player) {
+                continue;
+            }
+
+            $this->notificationService->create(
+                $player,
+                'Match scheduled',
+                "Your {$match->round} match in {$match->tournament->title} has been scheduled."
+            );
+        }
     }
 }

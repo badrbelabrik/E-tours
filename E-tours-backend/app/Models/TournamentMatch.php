@@ -48,6 +48,6 @@ class TournamentMatch extends Model
     // Match can have one result
     public function result()
     {
-        return $this->hasOne(Result::class);
+        return $this->hasOne(Result::class, 'match_id');
     }
 }

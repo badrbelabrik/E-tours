@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\GameController;
+use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\RankingController;
 use App\Http\Controllers\Api\RegistrationController;
 use App\Http\Controllers\Api\ResultController;
@@ -38,6 +39,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/tournaments/{tournament}/register', [RegistrationController::class, 'store']);
     Route::put('/registrations/{registration}', [RegistrationController::class, 'update']);
     Route::delete('/tournaments/{tournament}/register', [RegistrationController::class, 'destroy']);
+    //MATCHES-GENERATION
+    Route::post('/tournaments/{tournament}/matches/generate', [TournamentMatchController::class, 'generate']);
     //MATCHES
     Route::get('/matches', [TournamentMatchController::class, 'index']);
     Route::get('/matches/{match}', [TournamentMatchController::class, 'show']);
@@ -50,4 +53,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/results', [ResultController::class, 'store']);
     Route::put('/results/{result}', [ResultController::class, 'update']);
     Route::delete('/results/{result}', [ResultController::class, 'destroy']);
+    //NOTIFICATIONS
+    Route::get('/notifications', [NotificationController::class, 'index']);
+    Route::get('/notifications/{notification}', [NotificationController::class, 'show']);
+    Route::put('/notifications/{notification}/read', [NotificationController::class, 'markAsRead']);
+    Route::delete('/notifications/{notification}', [NotificationController::class, 'destroy']);
 });

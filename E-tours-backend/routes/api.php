@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\GameController;
+use App\Http\Controllers\Api\RegistrationController;
+use App\Http\Controllers\Api\TournamentController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -9,6 +11,9 @@ Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 Route::get('/games', [GameController::class, 'index']);
 Route::get('/games/{game}', [GameController::class, 'show']);
+Route::get('/tournaments', [TournamentController::class, 'index']);
+Route::get('/tournaments/{tournament}', [TournamentController::class, 'show']);
+
 
 Route::middleware(['auth:sanctum', 'admin'])->group(function () {
     Route::post('/games', [GameController::class, 'store']);
@@ -17,8 +22,17 @@ Route::middleware(['auth:sanctum', 'admin'])->group(function () {
 });
 
 Route::middleware('auth:sanctum')->group(function () {
-
+    //GAMES
     Route::get('/me', [AuthController::class, 'me']);
     Route::post('/logout', [AuthController::class, 'logout']);
+    //TOURNAMENTS
+    Route::post('/tournaments', [TournamentController::class, 'store']);
+    Route::put('/tournaments/{tournament}', [TournamentController::class, 'update']);
+    Route::delete('/tournaments/{tournament}', [TournamentController::class, 'destroy']);
+    //REGISTRATION
+    Route::get('/tournaments/{tournament}/registrations', [RegistrationController::class, 'index']);
+    Route::post('/tournaments/{tournament}/register', [RegistrationController::class, 'store']);
+    Route::put('/registrations/{registration}', [RegistrationController::class, 'update']);
+    Route::delete('/tournaments/{tournament}/register', [RegistrationController::class, 'destroy']);
 
 });

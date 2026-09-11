@@ -5,10 +5,17 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Registration;
 use App\Models\Tournament;
+use App\Services\RegistrationService;
 use Illuminate\Http\Request;
+use InvalidArgumentException;
 
 class RegistrationController extends Controller
 {
+    public function __construct(
+        protected RegistrationService $registrationService
+    ) {
+    }
+
     /**
      * Display registrations for a tournament.
      */
@@ -29,55 +36,22 @@ class RegistrationController extends Controller
      */
     public function store(Request $request, Tournament $tournament)
     {
-        $user = $request->user();
+        try {
+            $registration = $this->registrationService->register(
+                $request->user(),
+                $tournament
+            );
 
-        // Check if the tournament is open
-        if ($tournament->status !== 'open') {
             return response()->json([
-                'message' => 'This tournament is not open for registration.'
+                'message' => 'Registration submitted successfully.',
+                'registration' => $registration
+            ], 201);
+
+        } catch (InvalidArgumentException $e) {
+            return response()->json([
+                'message' => $e->getMessage()
             ], 422);
         }
-
-        // Check if the tournament is full
-        $approvedCount = $tournament->registrations()
-            ->where('status', 'approved')
-            ->count();
-
-        if ($approvedCount >= $tournament->max_players) {
-            return response()->json([
-                'message' => 'This tournament is full.'
-            ], 422);
-        }
-
-        // Check existing registration
-        $registration = Registration::where('tournament_id', $tournament->id)
-            ->where('user_id', $user->id)
-            ->first();
-
-        if ($registration && $registration->status !== 'cancelled') {
-            return response()->json([
-                'message' => 'You are already registered for this tournament.'
-            ], 409);
-        }
-
-        if ($registration) {
-            $registration->update([
-                'status' => 'pending',
-                'registration_date' => now()->toDateString(),
-            ]);
-        } else {
-            $registration = Registration::create([
-                'tournament_id' => $tournament->id,
-                'user_id' => $user->id,
-                'status' => 'pending',
-                'registration_date' => now()->toDateString(),
-            ]);
-        }
-
-        return response()->json([
-            'message' => 'Registration submitted successfully.',
-            'registration' => $registration
-        ], 201);
     }
 
     /**
@@ -89,14 +63,22 @@ class RegistrationController extends Controller
             'status' => 'required|in:approved,rejected',
         ]);
 
-        $registration->update([
-            'status' => $validated['status'],
-        ]);
+        try {
+            $registration = $this->registrationService->updateStatus(
+                $registration,
+                $validated['status']
+            );
 
-        return response()->json([
-            'message' => 'Registration status updated successfully.',
-            'registration' => $registration
-        ]);
+            return response()->json([
+                'message' => 'Registration status updated successfully.',
+                'registration' => $registration
+            ]);
+
+        } catch (InvalidArgumentException $e) {
+            return response()->json([
+                'message' => $e->getMessage()
+            ], 422);
+        }
     }
 
     /**
@@ -104,22 +86,21 @@ class RegistrationController extends Controller
      */
     public function destroy(Request $request, Tournament $tournament)
     {
-        $registration = Registration::where('tournament_id', $tournament->id)
-            ->where('user_id', $request->user()->id)
-            ->first();
+        try {
+            $registration = $this->registrationService->cancel(
+                $request->user(),
+                $tournament
+            );
 
-        if (!$registration) {
             return response()->json([
-                'message' => 'Registration not found.'
+                'message' => 'Registration cancelled successfully.',
+                'registration' => $registration
+            ]);
+
+        } catch (InvalidArgumentException $e) {
+            return response()->json([
+                'message' => $e->getMessage()
             ], 404);
         }
-
-        $registration->update([
-            'status' => 'cancelled',
-        ]);
-
-        return response()->json([
-            'message' => 'Registration cancelled successfully.'
-        ]);
     }
 }

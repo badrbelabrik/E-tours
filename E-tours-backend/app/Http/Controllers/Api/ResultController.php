@@ -7,6 +7,7 @@ use App\Models\Result;
 use App\Models\TournamentMatch;
 use App\Services\ResultService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 
 class ResultController extends Controller
 {
@@ -43,7 +44,7 @@ class ResultController extends Controller
         ]);
 
         $match = TournamentMatch::findOrFail($validated['match_id']);
-
+        Gate::authorize('create', $match);
         // The winner must be one of the two players.
         if (
             $validated['winner_id'] != $match->first_player_id &&
@@ -94,6 +95,8 @@ class ResultController extends Controller
      */
     public function show(Result $result)
     {
+        Gate::authorize('view', $result);
+
         $result->load([
             'match',
             'winner'
@@ -109,6 +112,8 @@ class ResultController extends Controller
      */
     public function update(Request $request, Result $result)
     {
+        Gate::authorize('update', $result);
+
         $validated = $request->validate([
             'score_player1' => 'required|integer|min:0',
             'score_player2' => 'required|integer|min:0',
@@ -171,10 +176,8 @@ class ResultController extends Controller
      */
     public function destroy(Result $result)
     {
-        /*
-         * Be careful here as well: deleting a result should eventually
-         * reverse its impact on the player's ranking.
-         */
+        Gate::authorize('delete', $result);
+
         $result->delete();
 
         return response()->json([

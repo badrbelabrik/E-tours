@@ -183,7 +183,7 @@ function Home() {
                                     size={28}
                                 />
                                 <span className="text-lg font-bold">
-                                    E-TOURS
+                                    NextRound
                                 </span>
                             </div>
 
@@ -323,7 +323,7 @@ function Home() {
                                     className="fill-[#7C3AED] text-[#7C3AED]"
                                 />
                                 <span className="font-black">
-                                    E-TOURS
+                                    NextRound
                                 </span>
                             </div>
 
@@ -383,7 +383,7 @@ function Home() {
                     </div>
 
                     <div className="mt-12 border-t border-white/10 pt-6 text-sm text-gray-600">
-                        © 2026 E-Tours. All rights reserved.
+                        © 2026 NextRound. All rights reserved.
                     </div>
                 </div>
             </footer>

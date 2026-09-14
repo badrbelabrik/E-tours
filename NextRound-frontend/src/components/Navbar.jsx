@@ -18,7 +18,7 @@ function Navbar() {
                     />
 
                     <span className="text-xl font-black tracking-tight text-white">
-                        E-TOURS
+                        NextRound
                     </span>
                 </Link>
 

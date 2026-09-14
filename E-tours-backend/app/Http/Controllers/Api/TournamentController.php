@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Tournament;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 
 class TournamentController extends Controller
 {
@@ -27,6 +28,8 @@ class TournamentController extends Controller
      */
     public function store(Request $request)
     {
+        Gate::authorize('create', Tournament::class);
+
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'game_id' => 'required|exists:games,id',
@@ -72,6 +75,8 @@ class TournamentController extends Controller
      */
     public function update(Request $request, Tournament $tournament)
     {
+        Gate::authorize('update', $tournament);
+
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'game_id' => 'required|exists:games,id',
@@ -96,6 +101,8 @@ class TournamentController extends Controller
      */
     public function destroy(Tournament $tournament)
     {
+        Gate::authorize('delete', $tournament);
+
         $tournament->delete();
 
         return response()->json([

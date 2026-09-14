@@ -7,6 +7,7 @@ use App\Models\Tournament;
 use App\Models\TournamentMatch;
 use Illuminate\Http\Request;
 use App\Services\MatchService;
+use Illuminate\Support\Facades\Gate;
 
 class TournamentMatchController extends Controller
 {
@@ -35,6 +36,8 @@ class TournamentMatchController extends Controller
      */
     public function store(Request $request)
     {
+        Gate::authorize('create', TournamentMatch::class);
+
         $validated = $request->validate([
             'tournament_id' => 'required|exists:tournaments,id',
             'round' => 'required|string|max:255',
@@ -70,6 +73,8 @@ class TournamentMatchController extends Controller
             'secondPlayer'
         ]);
 
+        Gate::authorize('view', $match);
+
         return response()->json([
             'match' => $match
         ]);
@@ -80,6 +85,8 @@ class TournamentMatchController extends Controller
      */
     public function update(Request $request, TournamentMatch $match)
     {
+        Gate::authorize('update', $match);
+
         $validated = $request->validate([
             'round' => 'required|string|max:255',
             'first_player_id' => 'nullable|exists:users,id|different:second_player_id',
@@ -101,6 +108,8 @@ class TournamentMatchController extends Controller
      */
     public function destroy(TournamentMatch $match)
     {
+        Gate::authorize('delete', $match);
+
         $match->delete();
 
         return response()->json([

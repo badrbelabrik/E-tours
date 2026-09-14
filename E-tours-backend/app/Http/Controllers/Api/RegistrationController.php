@@ -8,6 +8,7 @@ use App\Models\Tournament;
 use App\Services\RegistrationService;
 use Illuminate\Http\Request;
 use InvalidArgumentException;
+use Illuminate\Support\Facades\Gate;
 
 class RegistrationController extends Controller
 {
@@ -21,6 +22,8 @@ class RegistrationController extends Controller
      */
     public function index(Tournament $tournament)
     {
+        Gate::authorize('update', $tournament);
+
         $registrations = $tournament->registrations()
             ->with('user')
             ->latest()
@@ -59,6 +62,8 @@ class RegistrationController extends Controller
      */
     public function update(Request $request, Registration $registration)
     {
+        Gate::authorize('update', $registration);
+
         $validated = $request->validate([
             'status' => 'required|in:approved,rejected',
         ]);
@@ -86,6 +91,12 @@ class RegistrationController extends Controller
      */
     public function destroy(Request $request, Tournament $tournament)
     {
+        $registration = Registration::where('tournament_id', $tournament->id)
+            ->where('user_id', $request->user()->id)
+            ->firstOrFail();
+
+        Gate::authorize('delete', $registration);
+
         try {
             $registration = $this->registrationService->cancel(
                 $request->user(),

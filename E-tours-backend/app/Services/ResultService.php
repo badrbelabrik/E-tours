@@ -59,6 +59,49 @@ class ResultService
         });
     }
 
+    public function updateResult(
+        Result $result,
+        int $scorePlayer1,
+        int $scorePlayer2,
+        int $winnerId
+    ): Result {
+        return DB::transaction(function () use (
+            $result,
+            $scorePlayer1,
+            $scorePlayer2,
+            $winnerId
+        ) {
+            $result->update([
+                'score_player1' => $scorePlayer1,
+                'score_player2' => $scorePlayer2,
+                'winner_id' => $winnerId,
+            ]);
+
+            $game = $result->match->tournament->game;
+
+            $this->rankingService->recalculateForGame($game);
+
+            return $result->fresh();
+        });
+    }
+
+    public function deleteResult(Result $result): void
+    {
+        DB::transaction(function () use ($result) {
+            $game = $result->match->tournament->game;
+
+            $match = $result->match;
+
+            $result->delete();
+
+            $match->update([
+                'status' => 'scheduled',
+            ]);
+
+            $this->rankingService->recalculateForGame($game);
+        });
+    }
+
     private function generateNextRoundIfReady(
         TournamentMatch $match
     ): void {

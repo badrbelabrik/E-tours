@@ -5,9 +5,11 @@ const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
     const [user, setUser] = useState(null);
+
     const [token, setToken] = useState(
         localStorage.getItem('token')
     );
+
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -18,11 +20,7 @@ export function AuthProvider({ children }) {
             }
 
             try {
-                const response = await api.get('/me', {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                });
+                const response = await api.get('/me');
 
                 setUser(response.data);
             } catch (error) {
@@ -53,7 +51,12 @@ export function AuthProvider({ children }) {
         return response.data;
     };
 
-    const register = async (name, email, password, password_confirmation) => {
+    const register = async (
+        name,
+        email,
+        password,
+        password_confirmation
+    ) => {
         const response = await api.post('/register', {
             name,
             email,
@@ -64,25 +67,46 @@ export function AuthProvider({ children }) {
         return response.data;
     };
 
-    const logout = async () => {
-        try {
-            if (token) {
-                await api.post(
-                    '/logout',
-                    {},
-                    {
-                        headers: {
-                            Authorization: `Bearer ${token}`,
-                        },
-                    }
-                );
-            }
-        } finally {
-            localStorage.removeItem('token');
-            setToken(null);
-            setUser(null);
-        }
-    };
+const logout = async () => {
+    console.log('🔵 logout() started');
+
+    const currentToken = localStorage.getItem('token');
+
+    console.log('🔵 Token from localStorage:', currentToken);
+
+    if (!currentToken) {
+        console.log('🟡 No token found');
+
+        setToken(null);
+        setUser(null);
+
+        return;
+    }
+
+    try {
+        console.log('🔵 Sending POST /logout to Laravel...');
+
+        const response = await api.post('/logout');
+
+        console.log('🟢 Laravel logout response:', response.data);
+
+    } catch (error) {
+        console.error('🔴 Laravel logout failed');
+
+        console.error('Status:', error.response?.status);
+        console.error('Data:', error.response?.data);
+        console.error('Message:', error.message);
+
+    } finally {
+        console.log('🔵 Clearing frontend authentication...');
+
+        localStorage.removeItem('token');
+        setToken(null);
+        setUser(null);
+
+        console.log('🟢 Frontend authentication cleared');
+    }
+};
 
     return (
         <AuthContext.Provider

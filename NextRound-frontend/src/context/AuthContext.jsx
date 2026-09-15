@@ -67,17 +67,46 @@ export function AuthProvider({ children }) {
         return response.data;
     };
 
-    const logout = async () => {
-        try {
-            if (token) {
-                await api.post('/logout');
-            }
-        } finally {
-            localStorage.removeItem('token');
-            setToken(null);
-            setUser(null);
-        }
-    };
+const logout = async () => {
+    console.log('🔵 logout() started');
+
+    const currentToken = localStorage.getItem('token');
+
+    console.log('🔵 Token from localStorage:', currentToken);
+
+    if (!currentToken) {
+        console.log('🟡 No token found');
+
+        setToken(null);
+        setUser(null);
+
+        return;
+    }
+
+    try {
+        console.log('🔵 Sending POST /logout to Laravel...');
+
+        const response = await api.post('/logout');
+
+        console.log('🟢 Laravel logout response:', response.data);
+
+    } catch (error) {
+        console.error('🔴 Laravel logout failed');
+
+        console.error('Status:', error.response?.status);
+        console.error('Data:', error.response?.data);
+        console.error('Message:', error.message);
+
+    } finally {
+        console.log('🔵 Clearing frontend authentication...');
+
+        localStorage.removeItem('token');
+        setToken(null);
+        setUser(null);
+
+        console.log('🟢 Frontend authentication cleared');
+    }
+};
 
     return (
         <AuthContext.Provider

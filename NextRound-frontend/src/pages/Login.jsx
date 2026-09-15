@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link,useLocation, useNavigate } from 'react-router-dom';
 import {
     Eye,
     EyeOff,
@@ -12,6 +12,8 @@ import {
 import { useAuth } from '../context/AuthContext';
 
 function Login() {
+    const location = useLocation();
+    const successMessage = location.state?.message;
     const navigate = useNavigate();
     const { login } = useAuth();
 
@@ -40,7 +42,7 @@ function Login() {
         try {
             await login(form.email, form.password);
 
-            navigate('/dashboard');
+            navigate('/');
         } catch (error) {
             if (error.response?.status === 401) {
                 setError('Invalid email or password.');
@@ -108,6 +110,12 @@ function Login() {
                             Sign in to continue to NextRound
                         </p>
                     </div>
+                    {/* Succes message after registration */}
+                    {successMessage && (
+                        <div className="mb-6 rounded-lg border border-green-500/20 bg-green-500/10 px-4 py-3 text-sm text-green-400">
+                            {successMessage}
+                        </div>
+                    )}
 
                     {/* Error */}
                     {error && (

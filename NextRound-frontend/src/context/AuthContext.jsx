@@ -5,9 +5,11 @@ const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
     const [user, setUser] = useState(null);
+
     const [token, setToken] = useState(
         localStorage.getItem('token')
     );
+
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -18,11 +20,7 @@ export function AuthProvider({ children }) {
             }
 
             try {
-                const response = await api.get('/me', {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                });
+                const response = await api.get('/me');
 
                 setUser(response.data);
             } catch (error) {
@@ -53,7 +51,12 @@ export function AuthProvider({ children }) {
         return response.data;
     };
 
-    const register = async (name, email, password, password_confirmation) => {
+    const register = async (
+        name,
+        email,
+        password,
+        password_confirmation
+    ) => {
         const response = await api.post('/register', {
             name,
             email,
@@ -67,15 +70,7 @@ export function AuthProvider({ children }) {
     const logout = async () => {
         try {
             if (token) {
-                await api.post(
-                    '/logout',
-                    {},
-                    {
-                        headers: {
-                            Authorization: `Bearer ${token}`,
-                        },
-                    }
-                );
+                await api.post('/logout');
             }
         } finally {
             localStorage.removeItem('token');
